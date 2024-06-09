@@ -9,34 +9,34 @@ using System.Text;
 
 namespace ONICPU
 {
-  public class FCPUExecutorJavaScript : FCPUExecutor
-  {
-    [JsonObject]
-    public class FCPURestoreable
+    public class FCPUExecutorJavaScript : FCPUExecutor
     {
-      [JsonProperty]
-      public FCPUState State = FCPUState.NotStart;
-      [JsonProperty]
-      public FCPUInputOutput InputOutput;
-      [JsonProperty]
-      public string StorageData;
-    }
+        [JsonObject]
+        public class FCPURestoreable
+        {
+            [JsonProperty]
+            public FCPUState State = FCPUState.NotStart;
+            [JsonProperty]
+            public FCPUInputOutput InputOutput;
+            [JsonProperty]
+            public string StorageData;
+        }
 
-    public int LogsMaxCount = 16;
-    public List<string> Logs = new List<string>();
+        public int LogsMaxCount = 16;
+        public List<string> Logs = new List<string>();
 
-    private Module module;
-    private Function tick = null;
-    private Function start = null;
-    private Function stop = null;
-    private Function __initStorage = null;
-    private Function __saveStorage = null;
-    private JSValue io = null;
-    private JSValue[] pins = null;
-    private JSValue __internalErrorState = null;
-    private string StorageData = "";
+        private Module module;
+        private Function tick = null;
+        private Function start = null;
+        private Function stop = null;
+        private Function __initStorage = null;
+        private Function __saveStorage = null;
+        private JSValue io = null;
+        private JSValue[] pins = null;
+        private JSValue __internalErrorState = null;
+        private string StorageData = "";
 
-    public const string DefaultCode = @"//Here is your program
+        public const string DefaultCode = @"//Here is your program
 //Note: that you cannot use the while loop for delay, which will cause the game to stall.
 
 function start() {
@@ -72,7 +72,7 @@ function tick() {
   
 }
 ";
-    private const string __initCode = @"
+        private const string __initCode = @"
 var io = {};
 var storage = {};
 function __initStorage(json) {
@@ -143,256 +143,256 @@ function __stopAllTimer() {
 }
 ";
 
-    public override string CompileProgram(string program)
-    {
-      cpuState = FCPUState.HaltByUser;
-      tick = null;
-      start = null;
-      stop = null;
-      try
-      {
-        module = new Module(__initCode + program);
-      }
-      catch (Exception e)
-      {
-        Debug.Log(e.ToString());
-        return e.Message;
-      }
-      try
-      {
-        module.Run();
-
-        io = module.Context.GetVariable("io");
-
-        int i = 0, count = InputOutput.InputValues.Length + InputOutput.OutputValues.Length;
-        pins = new JSValue[count];
-        for (; i < InputOutput.InputValues.Length; i++)
-          pins[i] = io.DefineProperty($"P{i}");
-        for (; i < count; i++)
-          pins[i] = io.DefineProperty($"P{i}");
-
-        __internalErrorState = module.Context.DefineVariable("__internalErrorState");
-        var @delegate = new Action<string>(message =>
+        public override string CompileProgram(string program)
         {
-          Logs.Add(message);
-          if (Logs.Count >= LogsMaxCount)
-            Logs.RemoveAt(0);
-        });
-        module.Context.DefineVariable("__log").Assign(module.Context.GlobalContext.ProxyValue(@delegate));
-        var @delegate1 = new System.Action(() =>
-        {
-          ResetAll();
-        });
-        module.Context.DefineVariable("__reset").Assign(module.Context.GlobalContext.ProxyValue(@delegate1));
+            cpuState = FCPUState.HaltByUser;
+            tick = null;
+            start = null;
+            stop = null;
+            try
+            {
+                module = new Module(__initCode + program);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.ToString());
+                return e.Message;
+            }
+            try
+            {
+                module.Run();
 
-        var variable = module.Context.GetVariable("__tickEntry");
-        tick = variable != null ? variable.As<Function>() : null;
-        variable = module.Context.GetVariable("start");
-        start = variable != null ? variable.As<Function>() : null;
-        variable = module.Context.GetVariable("stop");
-        stop = variable != null ? variable.As<Function>() : null;
-        variable = module.Context.GetVariable("__initStorage");
-        __initStorage = variable != null ? variable.As<Function>() : null;
-        variable = module.Context.GetVariable("__saveStorage");
-        __saveStorage = variable != null ? variable.As<Function>() : null;
-        return "";
-      }
-      catch (Exception e)
-      {
-        Debug.Log(e.ToString());
-        return e.Message;
-      }
-    }
+                io = module.Context.GetVariable("io");
 
-    private Arguments emptyArguments = new Arguments();
+                int i = 0, count = InputOutput.InputValues.Length + InputOutput.OutputValues.Length;
+                pins = new JSValue[count];
+                for (; i < InputOutput.InputValues.Length; i++)
+                    pins[i] = io.DefineProperty($"P{i}");
+                for (; i < count; i++)
+                    pins[i] = io.DefineProperty($"P{i}");
 
-    private void HandleError(Exception eo, string prefix = "Call: ")
-    {
-      if (eo.GetType() == typeof(JSException))
-      {
-        var e = eo as JSException;
-        StringBuilder err = new StringBuilder();
-        try
-        {
-          err.Append("Tick program Error: ");
-          err.Append(e.Message);
-          err.Append(" Source: ");
-          err.Append(e.SourceCode);
-          err.Append(" StackTrace: ");
-          err.Append(e.StackTrace);
+                __internalErrorState = module.Context.DefineVariable("__internalErrorState");
+                var @delegate = new Action<string>(message =>
+                {
+                    Logs.Add(message);
+                    if (Logs.Count >= LogsMaxCount)
+                        Logs.RemoveAt(0);
+                });
+                module.Context.DefineVariable("__log").Assign(module.Context.GlobalContext.ProxyValue(@delegate));
+                var @delegate1 = new System.Action(() =>
+                {
+                    ResetAll();
+                });
+                module.Context.DefineVariable("__reset").Assign(module.Context.GlobalContext.ProxyValue(@delegate1));
+
+                var variable = module.Context.GetVariable("__tickEntry");
+                tick = variable != null ? variable.As<Function>() : null;
+                variable = module.Context.GetVariable("start");
+                start = variable != null ? variable.As<Function>() : null;
+                variable = module.Context.GetVariable("stop");
+                stop = variable != null ? variable.As<Function>() : null;
+                variable = module.Context.GetVariable("__initStorage");
+                __initStorage = variable != null ? variable.As<Function>() : null;
+                variable = module.Context.GetVariable("__saveStorage");
+                __saveStorage = variable != null ? variable.As<Function>() : null;
+                return "";
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.ToString());
+                return e.Message;
+            }
         }
-        catch (Exception e1)
+
+        private Arguments emptyArguments = new Arguments();
+
+        private void HandleError(Exception eo, string prefix = "Call: ")
         {
-          err.Append(e1.Message);
+            if (eo.GetType() == typeof(JSException))
+            {
+                var e = eo as JSException;
+                StringBuilder err = new StringBuilder();
+                try
+                {
+                    err.Append("Tick program Error: ");
+                    err.Append(e.Message);
+                    err.Append(" Source: ");
+                    err.Append(e.SourceCode);
+                    err.Append(" StackTrace: ");
+                    err.Append(e.StackTrace);
+                }
+                catch (Exception e1)
+                {
+                    err.Append(e1.Message);
+                }
+                Debug.Log(eo.ToString());
+                onError.Invoke(err.ToString());
+            }
+            else
+            {
+                onError.Invoke(prefix + eo.Message);
+                Debug.Log(eo.ToString());
+            }
+            cpuState = FCPUState.HaltByError;
         }
-        Debug.Log(eo.ToString());
-        onError.Invoke(err.ToString());
-      }
-      else
-      {
-        onError.Invoke(prefix + eo.Message);
-        Debug.Log(eo.ToString());
-      }
-      cpuState = FCPUState.HaltByError;
-    }
-    private void AssianValues()
-    {
-      int i = 0, count = InputOutput.InputValues.Length + InputOutput.OutputValues.Length;
-      for (; i < InputOutput.InputValues.Length; i++)
-        pins[i].Assign(InputOutput.Read(i));
-      for (; i < count; i++)
-        pins[i].Assign(InputOutput.Read(i));
-    }
-    private void UpdateValues()
-    {
-      int i = InputOutput.InputValues.Length, count = InputOutput.InputValues.Length + InputOutput.OutputValues.Length;
-      for (int j = 0; i < count; i++, j++)
-      {
-        int newValue;
-        if (pins[i].Is(JSValueType.Boolean))
-          newValue = ((bool)pins[i]) ? 1 : 0;
-        else
-          newValue = pins[i].As<int>();
-        if (newValue != InputOutput.OutputValues[j])
-          InputOutput.Write(i, newValue);
-      }
-
-      if (__internalErrorState != null && !__internalErrorState.IsNull)
-      {
-        var message = __internalErrorState.As<string>();
-        if (string.IsNullOrEmpty(message))
-          cpuState = FCPUState.HaltByUser;
-        else
+        private void AssianValues()
         {
-          onError.Invoke(message);
-          cpuState = FCPUState.HaltByError;
+            int i = 0, count = InputOutput.InputValues.Length + InputOutput.OutputValues.Length;
+            for (; i < InputOutput.InputValues.Length; i++)
+                pins[i].Assign(InputOutput.Read(i));
+            for (; i < count; i++)
+                pins[i].Assign(InputOutput.Read(i));
         }
-      }
-    }
-    private void ResetAll()
-    {
-      resetCalled = true;
-      InputOutput.Reset();
-    }
-
-    private bool resetCalled = false;
-
-    public override void Init()
-    {
-    }
-    //public override void Restore(string json)
-    //{
-    //  FCPURestoreable restoreData = JsonConvert.DeserializeObject<FCPURestoreable>(json);
-    //  if (restoreData != null)
-    //  {
-    //    if (restoreData.InputOutput != null)
-    //      InputOutput.CopyValuesFrom(restoreData.InputOutput);
-    //    if (restoreData.StorageData != null) 
-    //      StorageData = restoreData.StorageData;
-    //    State = restoreData.State;
-    //  }
-    //}
-    //public override string Save()
-    //{
-    //  FCPURestoreable restoreData = new FCPURestoreable();
-    //  restoreData.InputOutput = InputOutput;
-    //  restoreData.State = State;
-    //  try
-    //  {
-    //    if (__saveStorage != null)
-    //      StorageData = __saveStorage.Call(new Arguments()).As<string>();
-    //  }
-    //  catch (Exception e)
-    //  {
-    //    HandleError(e, "SaveStorage: ");
-    //  }
-    //  restoreData.StorageData = StorageData;
-    //  return JsonConvert.SerializeObject(restoreData);
-    //}
-    public override void Start()
-    {
-      cpuState = FCPUState.Looping;
-      try
-      {
-        if (__initStorage != null)
-          __initStorage.Call(new Arguments() { StorageData });
-        if (__internalErrorState != null)
-          __internalErrorState.Assign(JSValue.Null);
-      }
-      catch (Exception e)
-      {
-        HandleError(e, "StartPreinit: ");
-        return;
-      }
-      if (start != null)
-      {
-        try
+        private void UpdateValues()
         {
-          AssianValues();
+            int i = InputOutput.InputValues.Length, count = InputOutput.InputValues.Length + InputOutput.OutputValues.Length;
+            for (int j = 0; i < count; i++, j++)
+            {
+                int newValue;
+                if (pins[i].Is(JSValueType.Boolean))
+                    newValue = ((bool)pins[i]) ? 1 : 0;
+                else
+                    newValue = pins[i].As<int>();
+                if (newValue != InputOutput.OutputValues[j])
+                    InputOutput.Write(i, newValue);
+            }
 
-          resetCalled = false;
-          start.Call(emptyArguments);
-
-          if (!resetCalled)
-            UpdateValues();
-
-          onExecute.Invoke(-1);
+            if (__internalErrorState != null && !__internalErrorState.IsNull)
+            {
+                var message = __internalErrorState.As<string>();
+                if (string.IsNullOrEmpty(message))
+                    cpuState = FCPUState.HaltByUser;
+                else
+                {
+                    onError.Invoke(message);
+                    cpuState = FCPUState.HaltByError;
+                }
+            }
         }
-        catch(Exception e)
+        private void ResetAll()
         {
-          HandleError(e, "Start: ");
+            resetCalled = true;
+            InputOutput.Reset();
         }
-      }
-    }
-    public override void Stop()
-    {
-      cpuState = FCPUState.HaltByUser;
-      if (stop != null)
-      {
-        try
-        {
-          resetCalled = false;
-          stop.Call(new Arguments());
-          if (!resetCalled)
-            UpdateValues();
-        }
-        catch (Exception e)
-        {
-          HandleError(e, "Stop: ");
-        }
-      }
-    }
-    public override void ExecuteReset()
-    {
-      ResetAll();
-      cpuState = FCPUState.NotStart; 
-    }
-    public override void ExecuteTick()
-    {
-      if (cpuState == FCPUState.Looping) 
-      {
-        if (tick != null)
-        {
-          try
-          {
-            AssianValues();
 
-            resetCalled = false;
-            tick.Call(emptyArguments);
+        private bool resetCalled = false;
 
-            if (!resetCalled)
-              UpdateValues();
-          }
-          catch (Exception e)
-          {
-            HandleError(e, "Tick: ");
-          }
+        public override void Init()
+        {
         }
-      }
+        //public override void Restore(string json)
+        //{
+        //  FCPURestoreable restoreData = JsonConvert.DeserializeObject<FCPURestoreable>(json);
+        //  if (restoreData != null)
+        //  {
+        //    if (restoreData.InputOutput != null)
+        //      InputOutput.CopyValuesFrom(restoreData.InputOutput);
+        //    if (restoreData.StorageData != null) 
+        //      StorageData = restoreData.StorageData;
+        //    State = restoreData.State;
+        //  }
+        //}
+        //public override string Save()
+        //{
+        //  FCPURestoreable restoreData = new FCPURestoreable();
+        //  restoreData.InputOutput = InputOutput;
+        //  restoreData.State = State;
+        //  try
+        //  {
+        //    if (__saveStorage != null)
+        //      StorageData = __saveStorage.Call(new Arguments()).As<string>();
+        //  }
+        //  catch (Exception e)
+        //  {
+        //    HandleError(e, "SaveStorage: ");
+        //  }
+        //  restoreData.StorageData = StorageData;
+        //  return JsonConvert.SerializeObject(restoreData);
+        //}
+        public override void Start()
+        {
+            cpuState = FCPUState.Looping;
+            try
+            {
+                if (__initStorage != null)
+                    __initStorage.Call(new Arguments() { StorageData });
+                if (__internalErrorState != null)
+                    __internalErrorState.Assign(JSValue.Null);
+            }
+            catch (Exception e)
+            {
+                HandleError(e, "StartPreinit: ");
+                return;
+            }
+            if (start != null)
+            {
+                try
+                {
+                    AssianValues();
+
+                    resetCalled = false;
+                    start.Call(emptyArguments);
+
+                    if (!resetCalled)
+                        UpdateValues();
+
+                    onExecute.Invoke(-1);
+                }
+                catch (Exception e)
+                {
+                    HandleError(e, "Start: ");
+                }
+            }
+        }
+        public override void Stop()
+        {
+            cpuState = FCPUState.HaltByUser;
+            if (stop != null)
+            {
+                try
+                {
+                    resetCalled = false;
+                    stop.Call(new Arguments());
+                    if (!resetCalled)
+                        UpdateValues();
+                }
+                catch (Exception e)
+                {
+                    HandleError(e, "Stop: ");
+                }
+            }
+        }
+        public override void ExecuteReset()
+        {
+            ResetAll();
+            cpuState = FCPUState.NotStart;
+        }
+        public override void ExecuteTick()
+        {
+            if (cpuState == FCPUState.Looping)
+            {
+                if (tick != null)
+                {
+                    try
+                    {
+                        AssianValues();
+
+                        resetCalled = false;
+                        tick.Call(emptyArguments);
+
+                        if (!resetCalled)
+                            UpdateValues();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleError(e, "Tick: ");
+                    }
+                }
+            }
+        }
+        public override void ExecuteTicks()
+        {
+            ExecuteTick();
+        }
     }
-    public override void ExecuteTicks()
-    {
-      ExecuteTick();
-    }
-  }
 }

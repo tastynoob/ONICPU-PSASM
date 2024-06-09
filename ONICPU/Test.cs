@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ONICPU
 {
-  public class Test : MonoBehaviour
-  {
-  }
+    public class Test : MonoBehaviour
+    {
+    }
 }
