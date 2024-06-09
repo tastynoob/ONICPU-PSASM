@@ -145,7 +145,7 @@ function __stopAllTimer() {
 
     public override string CompileProgram(string program)
     {
-      State = FCPUState.HaltByUser;
+      cpuState = FCPUState.HaltByUser;
       tick = null;
       start = null;
       stop = null;
@@ -233,7 +233,7 @@ function __stopAllTimer() {
         onError.Invoke(prefix + eo.Message);
         Debug.Log(eo.ToString());
       }
-      State = FCPUState.HaltByError;
+      cpuState = FCPUState.HaltByError;
     }
     private void AssianValues()
     {
@@ -261,11 +261,11 @@ function __stopAllTimer() {
       {
         var message = __internalErrorState.As<string>();
         if (string.IsNullOrEmpty(message))
-          State = FCPUState.HaltByUser;
+          cpuState = FCPUState.HaltByUser;
         else
         {
           onError.Invoke(message);
-          State = FCPUState.HaltByError;
+          cpuState = FCPUState.HaltByError;
         }
       }
     }
@@ -280,38 +280,38 @@ function __stopAllTimer() {
     public override void Init()
     {
     }
-    public override void Restore(string json)
-    {
-      FCPURestoreable restoreData = JsonConvert.DeserializeObject<FCPURestoreable>(json);
-      if (restoreData != null)
-      {
-        if (restoreData.InputOutput != null)
-          InputOutput.CopyValuesFrom(restoreData.InputOutput);
-        if (restoreData.StorageData != null) 
-          StorageData = restoreData.StorageData;
-        State = restoreData.State;
-      }
-    }
-    public override string Save()
-    {
-      FCPURestoreable restoreData = new FCPURestoreable();
-      restoreData.InputOutput = InputOutput;
-      restoreData.State = State;
-      try
-      {
-        if (__saveStorage != null)
-          StorageData = __saveStorage.Call(new Arguments()).As<string>();
-      }
-      catch (Exception e)
-      {
-        HandleError(e, "SaveStorage: ");
-      }
-      restoreData.StorageData = StorageData;
-      return JsonConvert.SerializeObject(restoreData);
-    }
+    //public override void Restore(string json)
+    //{
+    //  FCPURestoreable restoreData = JsonConvert.DeserializeObject<FCPURestoreable>(json);
+    //  if (restoreData != null)
+    //  {
+    //    if (restoreData.InputOutput != null)
+    //      InputOutput.CopyValuesFrom(restoreData.InputOutput);
+    //    if (restoreData.StorageData != null) 
+    //      StorageData = restoreData.StorageData;
+    //    State = restoreData.State;
+    //  }
+    //}
+    //public override string Save()
+    //{
+    //  FCPURestoreable restoreData = new FCPURestoreable();
+    //  restoreData.InputOutput = InputOutput;
+    //  restoreData.State = State;
+    //  try
+    //  {
+    //    if (__saveStorage != null)
+    //      StorageData = __saveStorage.Call(new Arguments()).As<string>();
+    //  }
+    //  catch (Exception e)
+    //  {
+    //    HandleError(e, "SaveStorage: ");
+    //  }
+    //  restoreData.StorageData = StorageData;
+    //  return JsonConvert.SerializeObject(restoreData);
+    //}
     public override void Start()
     {
-      State = FCPUState.Looping;
+      cpuState = FCPUState.Looping;
       try
       {
         if (__initStorage != null)
@@ -346,7 +346,7 @@ function __stopAllTimer() {
     }
     public override void Stop()
     {
-      State = FCPUState.HaltByUser;
+      cpuState = FCPUState.HaltByUser;
       if (stop != null)
       {
         try
@@ -365,11 +365,11 @@ function __stopAllTimer() {
     public override void ExecuteReset()
     {
       ResetAll();
-      State = FCPUState.NotStart; 
+      cpuState = FCPUState.NotStart; 
     }
     public override void ExecuteTick()
     {
-      if (State == FCPUState.Looping) 
+      if (cpuState == FCPUState.Looping) 
       {
         if (tick != null)
         {
